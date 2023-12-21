@@ -192,7 +192,7 @@ class GoogleTags {
 
 	public function settings() {
 
-		if ( isset( $_POST['__wpdm_gtag_id'] ) ) {
+		if ( wpdm_query_var('save_gtm_settings', 'int') === 1) {
 			//update_option('__wpdm_gtag_apikey_name',wpdm_query_var('__wpdm_gtag_apikey_name'));
 			update_option( '__wpdm_gtag_id', wpdm_query_var( '__wpdm_gtag_id' ) );
 			update_option( '__wpdm_gtag_signup', (int)wpdm_query_var( '__wpdm_gtag_signup' ) );
@@ -200,59 +200,15 @@ class GoogleTags {
 			update_option( '__wpdm_gtag_dle', (int)wpdm_query_var( '__wpdm_gtag_dle' ) );
 			update_option( '__wpdm_gtm_auth', wpdm_query_var( '__wpdm_gtm_auth' ) );
 			update_option( '__wpdm_gtm_preview', wpdm_query_var( '__wpdm_gtm_preview' ) );
+			update_option( '__wpdm_gtag_purchase', wpdm_query_var( '__wpdm_gtag_purchase' ) );
+			update_option( '__wpdm_gtag_renew', wpdm_query_var( '__wpdm_gtag_renew' ) );
 			die( 'Settings Saved Successfully.' );
 		}
 
 
         $gtagid = get_option('__wpdm_gtag_id');
 
-		?>
-        <div class="panel panel-default">
-            <div class="panel-heading">Google Tag</div>
-            <div class="panel-body">
-                <div class="form-group">
-                    <label for="lead_source">Google Tag Manager ID</label>
-                    <input class="form-control" type="text" name="__wpdm_gtag_id" id="k"
-                           value="<?php echo get_option( '__wpdm_gtag_id' ); ?>" placeholder="GTM-XXXXX">
-                </div>
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">Track Events</div>
-            <div class="panel-body">
-
-                <div class="form-group">
-                    <input type="hidden" name="__wpdm_gtag_signup" value="0" />
-                    <label><input type="checkbox" name="__wpdm_gtag_signup" value="1" <?php checked(1, get_option( '__wpdm_gtag_signup' )); ?> > Track User Signup <code>event: WPDM.newSignup</code></code></label>
-                </div>
-
-                <div class="form-group">
-                    <input type="hidden" name="__wpdm_gtag_login" value="0" />
-                    <label><input type="checkbox" name="__wpdm_gtag_login" value="1" <?php checked(1, get_option( '__wpdm_gtag_login' )); ?> > Track User Login <code>event: WPDM.userLogin</code></code></label>
-                </div>
-
-                <div class="form-group">
-                    <input type="hidden" name="__wpdm_gtag_dle" value="0" />
-                    <label><input type="checkbox" name="__wpdm_gtag_dle" value="1" <?php checked(1, get_option( '__wpdm_gtag_dle' )); ?> > Track User Download <code>event: WPDM.newDownload</code></label>
-                </div>
-
-                <div class="form-group">
-                    <label>Environment <code>gtm_auth</code> parameter</label>
-                    <input class="form-control" type="text" name="__wpdm_gtm_auth" value="<?= get_option( '__wpdm_gtm_auth' ) ?>" />
-                </div>
-
-                <div class="form-group">
-                    <label>Environment <code>gtm_preview</code> parameter</label>
-                    <input class="form-control" type="text" name="__wpdm_gtm_preview" value="<?= get_option( '__wpdm_gtm_preview' ) ?>" />
-                </div>
-
-
-
-            </div>
-
-
-        </div>
-		<?php
+		include __DIR__.'/tpls/settings.php';
 	}
 
 
