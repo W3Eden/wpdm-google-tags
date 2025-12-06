@@ -2,8 +2,8 @@
 /**
  * Plugin Name:  WPDM - Google Tags
  * Plugin URI: https://www.wpdownloadmanager.com/
- * Description: Google Tags for WPDM
- * Author: WordPress Download Manager
+ * Description: Google Tags for Download Manager
+ * Author: Download Manager
  * Version: 1.0.0
  * Author URI: https://www.wpdownloadmanager.com/
  * Update URI: wpdm-google-tags
