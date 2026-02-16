@@ -44,7 +44,7 @@ class CheckoutTracker {
         if (!class_exists('\WPDMPP\Cart\CartService')) return;
 
         $cartService = \WPDMPP\Cart\CartService::instance();
-        $cart = $cartService->getCartObject();
+        $cart = $cartService->getCart();
 
         if (!$cart || count($cart) === 0) return;
 
@@ -76,7 +76,7 @@ class CheckoutTracker {
         if (!class_exists('\WPDMPP\Cart\CartService')) return;
 
         $cartService = \WPDMPP\Cart\CartService::instance();
-        $cart = $cartService->getCartObject();
+        $cart = $cartService->getCart();
 
         if (!$cart || count($cart) === 0) return;
 
