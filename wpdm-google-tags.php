@@ -2,278 +2,128 @@
 /**
  * Plugin Name:  WPDM - Google Tags
  * Plugin URI: https://www.wpdownloadmanager.com/
- * Description: Google Tags for Download Manager
+ * Description: GA4 e-commerce tracking & Google Tag Manager integration for WordPress Download Manager
  * Author: Download Manager
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author URI: https://www.wpdownloadmanager.com/
  * Update URI: wpdm-google-tags
  */
 
-namespace WPDM\AddOn;
-
-use WPDM\Admin\Menu\Settings;
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
 
-class GoogleTags {
-	private static $instance;
-	private $dir, $url;
+define('WPDM_GTAG_VERSION', '2.0.0');
+define('WPDM_GTAG_DIR', plugin_dir_path(__FILE__));
+define('WPDM_GTAG_URL', plugin_dir_url(__FILE__));
 
-	public static function getInstance() {
-		if ( self::$instance === null ) {
-			self::$instance = new self;
-			self::$instance->actions();
-			self::$instance->dir = dirname( __FILE__ );
-			self::$instance->url = WP_PLUGIN_URL . '/' . basename( self::$instance->dir );
-		}
+/**
+ * PSR-4 style autoloader for WPDMGoogleTags namespace.
+ */
+spl_autoload_register(function ($class) {
+    $prefix = 'WPDMGoogleTags\\';
+    $baseDir = WPDM_GTAG_DIR . 'src/';
 
-		return self::$instance;
-	}
-
-	private function actions() {
-		register_activation_hook( __FILE__, array( $this, 'activate' ) );
-		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
-
-
-		if ( is_admin() ) {
-			add_filter( 'add_wpdm_settings_tab', array( $this, 'settings_tab' ) );
-		}
-
-		add_action( 'wpdm_before_email_download_link', array( $this, 'pushTogtag' ), 10, 2 );
-
-		add_action( "admin_head", [ $this, 'admin_head' ] );
-
-        add_action("wp_head", [ $this, 'embedCode']);
-
-        add_action("user_register", [ $this, 'tagUserSignup']);
-
-        add_action("wp_footer", [ $this, 'footerCode']);
-
-	}
-
-	function admin_head() {
-		?>
-
-		<?php
-	}
-
-	function tagUserSignup() {
-		setcookie(
-			'wpdm_gtag_user_registered',
-			'1',
-			0,
-			'/',
-			'',
-			( false !== strstr( get_option( 'home' ), 'https:' ) ) && is_ssl(),
-			true
-		);
-	}
-
-	function settings_tab( $tabs ) {
-		$tabs['wpdm-google-tags'] = Settings::createMenu( 'wpdm-google-tags', 'Google Tags', array(
-			$this,
-			'settings'
-		), 'fas fa-tags' );
-
-		return $tabs;
-
-	}
-
-	public function activate() {
-
-	}
-
-	public function deactivate() {
-
-	}
-
-	public static function getDir() {
-		return self::$instance->dir;
-	}
-
-	public static function getUrl() {
-		return self::$instance->url;
-	}
-
-	function embedCode() {
-        $gtm_id = get_option('__wpdm_gtag_id');
-        $gtm_auth = get_option('__wpdm_gtm_auth');
-        $gtm_preview = get_option('__wpdm_gtm_preview');
-		if($gtm_auth && $gtm_preview) {
-        ?>
-        <!-- Google Tag Manager -->
-        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-                    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-                'https://www.googletagmanager.com/gtm.js?id='+i+dl+ '&gtm_auth=<?= $gtm_auth ?>&gtm_preview=<?= $gtm_preview ?>&gtm_cookies_win=x';f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','<?= $gtm_id ?>');</script>
-        <!-- End Google Tag Manager -->
-        <?php } else { ?>
-        <!-- Google Tag Manager -->
-        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-                    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','<?= $gtm_id ?>');</script>
-        <!-- End Google Tag Manager -->
-
-        <?php
-		}
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
     }
 
-    function footerCode() {
-	    $gtm_id = get_option('__wpdm_gtag_id');
-	    $gtm_usn = get_option('__wpdm_gtag_signup');
-	    $gtm_uln = get_option('__wpdm_gtag_login');
-	    $gtm_dle = get_option('__wpdm_gtag_dle');
-        ?>
-        <!-- Google Tag Manager (noscript) -->
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?= $gtm_id ?>"
-                          height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-        <!-- End Google Tag Manager (noscript) -->
+    $relativeClass = substr($class, $len);
+    $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
 
-        <script>
-		    <?php if($gtm_usn) { ?>
-            WPDM.addAction("wpdm_new_signup", function (data) {
-                if ( window.dataLayer) {
-                    window.dataLayer.push({
-                        'event': 'WPDM.newSignup',
-                        'pagePath': location.href,
-                        'pageTitle': document.title,
-                        'visitorType': 'visitor'
-
-                    });
-                    console.log('pushed WPDM.newSignup!')
-                } else {
-                    console.log('window.dataLayer not found!')
-                }
-            });
-		    <?php } ?>
-
-            <?php if($gtm_uln) { ?>
-            WPDM.addAction("wpdm_user_login", function (data) {
-                if ( window.dataLayer) {
-                    window.dataLayer.push({
-                        'event': 'WPDM.userLogin',
-                        'pagePath': location.href,
-                        'pageTitle': document.title,
-                        'visitorType': 'visitor'
-
-                    });
-                    console.log('pushed WPDM.userLogin!')
-                } else {
-                    console.log('window.dataLayer not found!')
-                }
-            });
-		    <?php } ?>
-
-		    <?php if($gtm_dle) { ?>
-            jQuery('body').on('click', '.wpdm-download-button, .wpdm-download-link, .inddl', function () {
-                if ( window.dataLayer) {
-                    window.dataLayer.push({
-                        'event': 'WPDM.newDownload',
-                        'pagePath': location.href,
-                        'pageTitle': document.title ,
-                        'visitorType': 'visitor'
-                    });
-                    console.log('pushed WPDM.newDownload!')
-                }
-                else {
-                    console.log('window.dataLayer not found!')
-                }
-            });
-		    <?php } ?>
-        </script>
-        <?php
+    if (file_exists($file)) {
+        require $file;
     }
+});
 
+/**
+ * Run settings migration on activation.
+ */
+register_activation_hook(__FILE__, function () {
+    \WPDMGoogleTags\Settings::migrate();
+});
 
-	public function settings() {
+/**
+ * Initialize the plugin after WPDM core is loaded.
+ */
+if (defined('WPDM_VERSION')) {
 
-		if ( wpdm_query_var('save_gtm_settings', 'int') === 1) {
-			//update_option('__wpdm_gtag_apikey_name',wpdm_query_var('__wpdm_gtag_apikey_name'));
-			update_option( '__wpdm_gtag_id', wpdm_query_var( '__wpdm_gtag_id' ) );
-			update_option( '__wpdm_gtag_signup', (int)wpdm_query_var( '__wpdm_gtag_signup' ) );
-			update_option( '__wpdm_gtag_login', (int)wpdm_query_var( '__wpdm_gtag_login' ) );
-			update_option( '__wpdm_gtag_dle', (int)wpdm_query_var( '__wpdm_gtag_dle' ) );
-			update_option( '__wpdm_gtm_auth', wpdm_query_var( '__wpdm_gtm_auth' ) );
-			update_option( '__wpdm_gtm_preview', wpdm_query_var( '__wpdm_gtm_preview' ) );
-			update_option( '__wpdm_gtag_purchase', wpdm_query_var( '__wpdm_gtag_purchase' ) );
-			update_option( '__wpdm_gtag_renew', wpdm_query_var( '__wpdm_gtag_renew' ) );
-			die( 'Settings Saved Successfully.' );
-		}
+    add_action('plugins_loaded', function () {
 
+        // Settings (admin tab)
+        \WPDMGoogleTags\Settings::register();
 
-        $gtagid = get_option('__wpdm_gtag_id');
+        // GTM container embed (head + body + dataLayer render)
+        $gtmEmbed = new \WPDMGoogleTags\GTMEmbed();
+        $gtmEmbed->register();
 
-		include __DIR__.'/tpls/settings.php';
-	}
+        // Enqueue client-side JS on frontend
+        add_action('wp_enqueue_scripts', function () {
+            $settings = \WPDMGoogleTags\Settings::getAll();
+            $gtmId = $settings['gtm_id'] ?? '';
+            if (!$gtmId) return;
 
+            wp_enqueue_script(
+                'wpdm-gtag-events',
+                WPDM_GTAG_URL . 'assets/js/gtm-events.js',
+                ['jquery'],
+                WPDM_GTAG_VERSION,
+                true
+            );
 
-	public function pushTogtag( $post, $file ) {
+            wp_localize_script('wpdm-gtag-events', 'wpdmGtagConfig', [
+                'debug'    => !empty($settings['debug_mode']),
+                'currency' => \WPDMGoogleTags\Helper\ProductData::getCurrency(),
+            ]);
+        });
 
-		$keyname = 'api-key';// get_option('__wpdm_gtag_apikey_name');
-		$key     = get_option( '__wpdm_gtag_apikey' );
+        // --- Trackers ---
 
-		if ( ! $key ) {
-			return;
-		}
+        // View Item (single package page) — always available with core WPDM
+        $viewItemTracker = new \WPDMGoogleTags\Tracker\ViewItemTracker();
+        $viewItemTracker->register();
 
-		$name       = $post['name'];
-		$names      = explode( ' ', $name );
-		$first_name = $names[0];
-		$last_name  = wpdm_valueof( $names, 1, $names[0] );
+        // Download Tracker — always available with core WPDM
+        $downloadTracker = new \WPDMGoogleTags\Tracker\DownloadTracker();
+        $downloadTracker->register();
 
-		$email = $post['email'];
+        // User Tracker — always available
+        $userTracker = new \WPDMGoogleTags\Tracker\UserTracker();
+        $userTracker->register();
 
-		if ( is_email( $email ) ) {
+        // E-commerce trackers — only when Premium Packages is active
+        if (defined('WPDMPP_VERSION')) {
+            $cartTracker = new \WPDMGoogleTags\Tracker\CartTracker();
+            $cartTracker->register();
 
-			$credentials = Configuration::getDefaultConfiguration()->setApiKey( $keyname, $key );
+            $checkoutTracker = new \WPDMGoogleTags\Tracker\CheckoutTracker();
+            $checkoutTracker->register();
 
-			$apiInstance = new ContactsApi(
-				new Client(),
-				$credentials
-			);
+            $orderTracker = new \WPDMGoogleTags\Tracker\OrderTracker();
+            $orderTracker->register();
+        }
 
-			$createContact = new \gtag\Client\Model\CreateContact( [
-				'email'         => $email,
-				'updateEnabled' => true,
-				'attributes'    => [ 'FIRSTNAME' => $first_name, 'LASTNAME' => $last_name ],
-				'listIds'       => [ (int) get_option( '__wpdm_gtag_list' ) ]
-			] );
+    });
 
-			try {
-				$result = $apiInstance->createContact( $createContact );
-			} catch ( \Exception $e ) {
-				print_r( $e );
-				echo 'Exception when calling ContactsApi->createContact: ', $e->getMessage(), PHP_EOL;
-			}
+    /**
+     * Auto-updater integration.
+     */
+    add_filter('update_plugins_wpdm-google-tags', function ($update, $plugin_data, $plugin_file, $locales) {
+        $id = basename(__DIR__);
+        $latest_versions = WPDM()->updater->getLatestVersions();
+        $latest_version = wpdm_valueof($latest_versions, $id);
+        $access_token = wpdm_access_token();
 
-
-		}
-	}
-
-}
-
-if ( defined( 'WPDM_VERSION' ) ) {
-	GoogleTags::getInstance();
-
-	add_filter( 'update_plugins_wpdm-google-tags', function ( $update, $plugin_data, $plugin_file, $locales ) {
-		$id                = basename( __DIR__ );
-		$latest_versions   = WPDM()->updater->getLatestVersions();
-		$latest_version    = wpdm_valueof( $latest_versions, $id );
-		$access_token      = wpdm_access_token();
-		$update            = [];
-		$update['id']      = $id;
-		$update['slug']    = $id;
-		$update['url']     = $plugin_data['PluginURI'];
-		$update['tested']  = true;
-		$update['version'] = $latest_version;
-		$update['package'] = $access_token !== '' ? "https://www.wpdownloadmanager.com/?wpdmpp_file={$id}.zip&access_token={$access_token}" : '';
-
-		return $update;
-	}, 10, 4 );
-
+        return [
+            'id'      => $id,
+            'slug'    => $id,
+            'url'     => $plugin_data['PluginURI'],
+            'tested'  => true,
+            'version' => $latest_version,
+            'package' => $access_token !== ''
+                ? "https://www.wpdownloadmanager.com/?wpdmpp_file={$id}.zip&access_token={$access_token}"
+                : '',
+        ];
+    }, 10, 4);
 }
