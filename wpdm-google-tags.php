@@ -121,9 +121,7 @@ if (defined('WPDM_VERSION')) {
             'url'     => $plugin_data['PluginURI'],
             'tested'  => true,
             'version' => $latest_version,
-            'package' => $access_token !== ''
-                ? "https://www.wpdownloadmanager.com/?wpdmpp_file={$id}.zip&access_token={$access_token}"
-                : '',
+            'package' => "https://www.wpdownloadmanager.com/?wpdmdl=208184",
         ];
     }, 10, 4);
 }
