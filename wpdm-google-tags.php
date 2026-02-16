@@ -4,7 +4,7 @@
  * Plugin URI: https://www.wpdownloadmanager.com/
  * Description: GA4 e-commerce tracking & Google Tag Manager integration for WordPress Download Manager
  * Author: Download Manager
- * Version: 2.0.0
+ * Version: 2.0.1
  * Author URI: https://www.wpdownloadmanager.com/
  * Update URI: wpdm-google-tags
  */
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WPDM_GTAG_VERSION', '2.0.0');
+define('WPDM_GTAG_VERSION', '2.0.1');
 define('WPDM_GTAG_DIR', plugin_dir_path(__FILE__));
 define('WPDM_GTAG_URL', plugin_dir_url(__FILE__));
 
@@ -66,7 +66,7 @@ if (defined('WPDM_VERSION')) {
 
             wp_enqueue_script(
                 'wpdm-gtag-events',
-                WPDM_GTAG_URL . 'assets/js/gtm-events.js',
+                WPDM_GTAG_URL . 'assets/js/gtm-events.min.js',
                 ['jquery'],
                 WPDM_GTAG_VERSION,
                 true
